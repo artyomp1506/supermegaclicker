@@ -1,0 +1,13 @@
+{%extends "base.html"%}
+{%block content%}
+<h1>Регистрация</h1>
+    {% if form.errors %} 
+        <p>Пароли разные</p>
+    {% endif %} 
+    <form action="{% url 'register' %}" method='POST'> 
+        {% csrf_token %} 
+        {{ form.as_p }} 
+        <input type="submit"> 
+    </form> 
+    <a href="{% url 'login' %}">Зарегистрирован?</a>
+{%endblock%} 
