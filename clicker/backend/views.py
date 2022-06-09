@@ -4,6 +4,9 @@ from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
 from backend.forms import UserForm
 from backend.models import Core
+from backend.serializers import CoreSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 class UserRegister(APIView):
     def get(self, request):
@@ -40,4 +43,9 @@ def index(request):
 def user_logout(request):
 	logout(request)
 	return redirect('login')
-
+@api_view(['GET'])
+def call_click(request):
+	core=Core.objects.get(user=request.user)
+	core.click()
+	core.save()
+	return Response({ 'core': CoreSerializer(core).data })

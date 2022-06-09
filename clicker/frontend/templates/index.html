@@ -1,0 +1,11 @@
+{%extends "base.html"%}
+{%block content%}
+{% load static%}
+<div class="weight">
+Вы набрали: <div id="current_weight">{{core.weight}} кг</div>
+</div>
+<div class="click_button">
+<p>Текущий торт:</p>
+ <img class="cake" src="{% static 'img/cake2.jpg' %}" onclick="call_click()"></img>
+</div>
+{%endblock%} 
