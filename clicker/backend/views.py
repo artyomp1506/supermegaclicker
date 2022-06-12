@@ -48,4 +48,6 @@ def call_click(request):
 	core=Core.objects.get(user=request.user)
 	core.click()
 	core.save()
-	return Response({ 'core': CoreSerializer(core).data })
+	serialized_core = CoreSerializer(core).data
+	print(dir(serialized_core))
+	return Response({ 'core': serialized_core })
