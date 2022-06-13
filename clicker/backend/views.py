@@ -3,11 +3,12 @@ from django.http import HttpResponse
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
 from backend.forms import UserForm
-from backend.models import Core
-from backend.serializers import CoreSerializer
+from backend.models import Core, Boost
+from backend.serializers import CoreSerializer, BoostSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
+from rest_framework import viewsets
 class UserRegister(APIView):
     def get(self, request):
         form = UserForm()
@@ -39,14 +40,38 @@ class UserLogin(APIView):
 @login_required
 def index(request):         
     core = Core.objects.get(user=request.user)
-    return render(request, 'index.html', {'core': core})
+    boosts = Boost.objects.filter(core=core)
+    return render(request, 'index.html', {'core': core, 'boosts':boosts})
 def user_logout(request):
 	logout(request)
 	return redirect('login')
 @api_view(['GET'])
 def call_click(request):
-	core=Core.objects.get(user=request.user)
+	core = Core.objects.get(user=request.user)
 	core.click()
+	if core.is_levelup:
+		Boost.objects.create(core=core, price=core.level * 10, power=core.level * 5)
 	core.save()
 	serialized_core = CoreSerializer(core).data
-	return Response({ 'core': serialized_core })
+	return Response({'core': serialized_core})
+class BoostViewSet(viewsets.ModelViewSet): 
+    queryset = Boost.objects.all() 
+    serializer_class = BoostSerializer
+
+    def get_queryset(self):
+        core = Core.objects.get(user=self.request.user)
+        boosts = Boost.objects.filter(core=core)
+        return boosts
+    def partial_update(self, request, pk):
+        boost = self.queryset.get(pk=pk)
+
+        is_levelup = boost.levelup()
+        if not is_levelup:
+            return Response({ "error": "Не хватает веса" })
+
+        old_boost_stats, new_boost_stats = is_levelup
+
+        return Response({
+        "old_boost_stats": self.serializer_class(old_boost_stats).data,
+        "new_boost_stats": self.serializer_class(new_boost_stats).data,
+    })
